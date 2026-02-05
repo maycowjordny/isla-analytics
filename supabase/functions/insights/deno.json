@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@0.26.0",
+    "dotenv": "https://deno.land/x/dotenv@v3.2.0/mod.ts"
+  }
+}

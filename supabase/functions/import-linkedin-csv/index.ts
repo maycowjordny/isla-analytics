@@ -1,49 +1,70 @@
-import "@supabase/functions-js/edge-runtime.d.ts"
-import * as XLSX from "https://esm.sh/xlsx@0.18.5"
-import { populateDiscovery } from "./_utils/populate-discovery.ts"
-import { populateFollowersDaily } from "./_utils/populate-followers_daily.ts"
+import "@supabase/functions-js/edge-runtime.d.ts";
+import * as XLSX from "xlsx";
+import { populateAudienceDemographics } from "./_utils/populate-audience-demographics.ts";
+import { populateDiscovery } from "./_utils/populate-discovery.ts";
+import { populateFollowersDaily } from "./_utils/populate-followers_daily.ts";
+import { populateTopPosts } from "./_utils/populate-top-posts.ts";
+
+const SHEET_INDEX = {
+  DISCOVERY: 0,
+  ENGAGEMENT: 1,
+  TOP_POSTS: 2,
+  FOLLOWERS: 3,
+  DEMOGRAPHICS: 4,
+};
 
 Deno.serve(async (req) => {
-  const form = await req.formData()
-  const file = form.get("file")
+  try {
+    const form = await req.formData();
+    const file = form.get("file");
 
-  if (!file || !(file instanceof File)) return new Response("File missing", { status: 400 })
-  
-  const buffer = await file.arrayBuffer()
-  const workbook = XLSX.read(buffer, { type: "array" })
-  
-  const sheetName = workbook.SheetNames.find(
-    (name) => name.toLowerCase() === "discovery"
-  )
+    if (!file || !(file instanceof File))
+      return new Response("File not found", { status: 400 });
 
-  if (!sheetName) return new Response("Discovery sheet not found", { status: 400 })
-  
-  const sheet = workbook.Sheets[sheetName]
-  const rows = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 })
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: "array" });
 
-  const { dateRange } = await populateDiscovery(rows as string[][])
+    if (workbook.SheetNames.length < 5) {
+      return new Response(
+        `The Excel file is incomplete. Expected 5 sheets, found ${workbook.SheetNames.length}.`,
+        { status: 400 },
+      );
+    }
 
-  const endDate = dateRange.split("-")[1]?.trim() ?? ""
-  const metricDate = endDate
-    ? endDate.split("/").reverse().join("-") 
-    : null
+    const discoverySheetName = workbook.SheetNames[SHEET_INDEX.DISCOVERY];
+    const engagementSheetName = workbook.SheetNames[SHEET_INDEX.ENGAGEMENT];
+    const followersSheetName = workbook.SheetNames[SHEET_INDEX.FOLLOWERS];
+    const topPostsSheetName = workbook.SheetNames[SHEET_INDEX.TOP_POSTS];
+    const demographicsSheetName = workbook.SheetNames[SHEET_INDEX.DEMOGRAPHICS];
 
-  if (!metricDate) return new Response("Metric date not found", { status: 400 })
+    const getSheetData = (sheetName: string) => {
+      const sheet = workbook.Sheets[sheetName];
+      return XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
+    };
 
-  const followersSheetName = workbook.SheetNames.find((name) =>
-    name.toLowerCase().includes("followers")
-  )
+    const rowsDiscovery = getSheetData(discoverySheetName);
+    const rowsEngagement = getSheetData(engagementSheetName);
+    const rowsFollowers = getSheetData(followersSheetName);
+    const rowsTopPosts = getSheetData(topPostsSheetName);
+    const rowsAudienceDemographics = getSheetData(demographicsSheetName);
 
-  if (!followersSheetName) {
-    return new Response("Followers sheet not found", { status: 400 })
+    await populateDiscovery(rowsDiscovery, rowsEngagement);
+
+    await populateFollowersDaily(rowsFollowers);
+
+    await populateTopPosts(rowsTopPosts);
+
+    await populateAudienceDemographics(rowsAudienceDemographics);
+
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
-
-  const followersSheet = workbook.Sheets[followersSheetName]
-  const followersRows = XLSX.utils.sheet_to_json<string[]>(followersSheet, { header: 1 })
-
-  await populateFollowersDaily(followersRows as string[][])
-
-  return new Response(JSON.stringify({ ok: true }), {
-    headers: { "Content-Type": "application/json" },
-  })
-})
+});

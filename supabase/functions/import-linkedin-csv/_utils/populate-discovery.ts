@@ -1,30 +1,51 @@
 import { supabase } from "../../_shared/supabase.ts";
+import { formatDate } from "./format-date.ts";
 
-export async function populateDiscovery(rows: string[][]) {
-  const normalize = (v: string) => v?.toString().trim().toLowerCase()
+export async function populateDiscovery(
+  rowsDiscovery: string[][],
+  rowsEngagement: string[][],
+) {
+  const dateRange = (rowsDiscovery[0]?.[1] ?? "").toString().trim();
+  const impressions = Number(rowsDiscovery[1]?.[1] ?? 0);
+  const membersReached = Number(rowsDiscovery[2]?.[1] ?? 0);
 
-  let dateRange = ""
-  let impressions = 0
-  let membersReached = 0
-
-  for (const row of rows) {
-    const label = normalize(row?.[0] ?? "")
-
-    if (label.startsWith("overall performance"))  dateRange = (row?.[1] ?? "").toString().trim()
-    if (label === "impressions") impressions = Number(row?.[1] ?? 0)
-    if (label === "members reached") membersReached = Number(row?.[1] ?? 0)
+  let engagements = 0;
+  for (let i = 1; i < rowsEngagement.length; i++) {
+    const row = rowsEngagement[i];
+    if (!row || row.length < 3) continue;
+    engagements += Number(row[2] ?? 0);
   }
 
-  await supabase
-    .from("linkedin_discovery_metrics")
-    .upsert(
-      {
-        date_range: dateRange,
-        impressions,
-        members_reached: membersReached,
-      },
-      { onConflict: "date_range" }
-    )
+  if (!dateRange) {
+    console.error("Discovery rows:", rowsDiscovery);
+    throw new Error("Date range not found in discovery data");
+  }
 
-  return { dateRange };
+  const dateParts = dateRange.split("-");
+  const endDate = dateParts[1]?.trim() ?? "";
+
+  if (!endDate) {
+    console.error("Date range found:", dateRange);
+    console.error("Split parts:", dateParts);
+    throw new Error(
+      `Could not parse metric_date from dateRange: "${dateRange}". Expected format: "DD/MM/YYYY - DD/MM/YYYY"`,
+    );
+  }
+
+  const metricDate = formatDate(endDate);
+
+  const { error } = await supabase.from("linkedin_daily_metrics").upsert(
+    {
+      metric_date: metricDate,
+      impressions,
+      members_reached: membersReached,
+      engagements,
+    },
+    { onConflict: "metric_date" },
+  );
+
+  if (error) {
+    console.error("Error inserting discovery metrics:", error);
+    throw new Error("Failed to insert discovery metrics");
+  }
 }

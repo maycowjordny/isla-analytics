@@ -29,5 +29,9 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "supabase/functions/_shared/anthropic.ts",
+    "supabase/functions/_shared/api.ts"
+  ]
 }
