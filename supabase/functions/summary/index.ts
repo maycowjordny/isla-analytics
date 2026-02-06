@@ -98,13 +98,6 @@ Deno.serve(async (req) => {
     const currentMembersReached = latestSummary?.total_members_reached || 0;
     const prevMembersReached = previousSummary?.total_members_reached || 0;
 
-    let membersReachedDelta = 0;
-    if (prevMembersReached > 0) {
-      membersReachedDelta =
-        ((currentMembersReached - prevMembersReached) / prevMembersReached) *
-        100;
-    }
-
     const dailyMomentumChart = currentPeriodMetrics.map((day) => {
       const dailyER =
         day.impressions > 0 ? (day.engagements / day.impressions) * 100 : 0;
@@ -155,7 +148,6 @@ Deno.serve(async (req) => {
           members_reached: {
             value: currentMembersReached,
             previous: prevMembersReached,
-            delta: Number(membersReachedDelta.toFixed(2)),
           },
           engagements: calculateGrowth(
             metricsResponse.data,

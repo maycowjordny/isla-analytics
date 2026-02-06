@@ -5,6 +5,7 @@ import { populateAudienceDemographics } from "./_utils/populate-audience-demogra
 import { populateDiscovery } from "./_utils/populate-discovery.ts";
 import { populateFollowersDaily } from "./_utils/populate-followers_daily.ts";
 import { populateTopPosts } from "./_utils/populate-top-posts.ts";
+import { validateLinkedInExport } from "./_utils/validate-linkedin-export.ts";
 
 const SHEET_INDEX = {
   DISCOVERY: 0,
@@ -42,18 +43,13 @@ Deno.serve(async (req) => {
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: "array" });
 
-    if (!workbook.SheetNames.length) {
-      return badRequest("The file does not contain valid sheets.");
+    const validation = validateLinkedInExport(workbook);
+    if (!validation.ok) {
+      return badRequest(validation.message);
     }
 
     const discoverySheetName = workbook.SheetNames[SHEET_INDEX.DISCOVERY];
-    const discoverySheet = discoverySheetName
-      ? workbook.Sheets[discoverySheetName]
-      : undefined;
-
-    if (!discoverySheet) {
-      return badRequest("Unable to read data from the CSV/Excel file.");
-    }
+    const discoverySheet = workbook.Sheets[discoverySheetName];
 
     let weekStart = "unknown_start";
     let weekEnd = "unknown_end";
@@ -116,9 +112,7 @@ Deno.serve(async (req) => {
     await populateTopPosts(
       getSheetData(workbook.SheetNames[SHEET_INDEX.TOP_POSTS]),
     );
-    console.timeEnd("Processing Top Posts");
 
-    console.time("Processing Demographics");
     await populateAudienceDemographics(
       getSheetData(workbook.SheetNames[SHEET_INDEX.DEMOGRAPHICS]),
     );

@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Lightbulb, Upload } from "lucide-react";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 
 type UploadModalProps = {
@@ -23,10 +23,45 @@ export function UploadAnalyticsModal({
 }: UploadModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      const ext = droppedFile.name.split(".").pop()?.toLowerCase();
+      if (ext === "csv" || ext === "xlsx") {
+        setFile(droppedFile);
+      } else {
+        toast.error("Formato inválido. Envie um arquivo CSV ou Excel.");
+      }
     }
   };
 
@@ -101,8 +136,25 @@ export function UploadAnalyticsModal({
             </li>
           </ol>
         </div>
-        <label className="group relative border-2 border-dashed border-slate-200 rounded-2xl p-4 sm:p-10 flex flex-col items-center justify-center cursor-pointer hover:border-slate-300 transition-colors bg-slate-50/50">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => inputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
+          }}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`group relative border-2 border-dashed rounded-2xl p-4 sm:p-10 flex flex-col items-center justify-center cursor-pointer transition-colors bg-slate-50/50 ${
+            isDragging
+              ? "border-cyan-400 bg-cyan-50/50"
+              : "border-slate-200 hover:border-slate-300"
+          }`}
+        >
           <input
+            ref={inputRef}
             type="file"
             className="hidden"
             accept=".csv,.xlsx"
@@ -115,7 +167,7 @@ export function UploadAnalyticsModal({
           <p className="text-slate-400 text-[9px] sm:text-xs mt-1 text-center">
             CSV or Excel files (max 10MB)
           </p>
-        </label>
+        </div>
 
         <p className="text-center text-[8px] sm:text-[10px] text-slate-400 mt-3 sm:mt-4">
           We only use this data to generate insights for your dashboard.

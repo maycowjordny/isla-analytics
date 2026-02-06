@@ -55,7 +55,18 @@ function App() {
         body: form,
       });
 
-      if (error) throw error;
+      if (error) {
+        const errorBody = error.context
+          ? await error.context.json().catch(() => null)
+          : null;
+
+        const message =
+          errorBody?.message ||
+          error.message ||
+          "An error occurred while uploading the file.";
+        toast.error(message);
+        return;
+      }
 
       fetchSummary();
       fetchInsights();
@@ -250,7 +261,7 @@ function App() {
                   <KPICard
                     label="Members Reached"
                     value={kpis.membersReached.value.toLocaleString()}
-                    delta={kpis.membersReached.delta}
+                    delta={0}
                     icon={<Users className="w-4 h-4" />}
                     delay={50}
                     description="Unique LinkedIn members who saw your content."

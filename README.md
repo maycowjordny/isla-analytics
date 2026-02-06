@@ -1,73 +1,139 @@
-# React + TypeScript + Vite
+# 📊 Isla Analytics – LinkedIn Weekly Insights
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Full Stack application developed as part of the **Technical Challenge – Isla Company**.
 
-Currently, two official plugins are available:
+**Isla Analytics** is a complete web solution that allows users to upload weekly exports of LinkedIn Analytics data, process the data, and generate interactive dashboards with metrics, charts, and AI-generated insights. The system was built to provide a smooth and intuitive experience, focusing on data analysis and visualization.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+> Developed by: **Maycow Jordny**
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🌐 Important Links
 
-## Expanding the ESLint configuration
+- **Lovable Prototype**: [https://analytics-isla-test.lovable.app](https://analytics-isla-test.lovable.app)
+- **Figma Design**: [https://www.figma.com/design/klCQhglpdHXnZCbq51tvFK](https://www.figma.com/design/klCQhglpdHXnZCbq51tvFK)
+- **Download LinkedIn Analytics CSV**: [https://www.linkedin.com/analytics/creator/content/?metricType=IMPRESSIONS&timeRange=past_365_days](https://www.linkedin.com/analytics/creator/content/?metricType=IMPRESSIONS&timeRange=past_365_days)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🧠 About the Project
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+**Isla Analytics** is a web application for weekly analysis of LinkedIn data. Users can upload CSV files exported from LinkedIn Analytics, and the system processes the data to generate dashboards with the following information:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Weekly Scoreboard**: Weekly KPIs with week-over-week (WoW) deltas.
+- **Daily Momentum and Follower Growth Charts**.
+- **Top Content**: Lists of the most relevant posts by engagement and impressions.
+- **Audience Profile**: Audience profiles by titles, locations, industries, seniority, and size.
+- **AI Coach Insights**: AI-generated insights with goals for the next week.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## ✅ Features
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- [x] Upload CSV files exported from LinkedIn.
+- [x] Automatic validation and processing of data.
+- [x] Dashboard generation with:
+  - Weekly KPIs.
+  - Daily Momentum and Follower Growth Charts.
+  - Top Content lists.
+  - Audience profiles.
+  - AI-generated insights.
+- [x] Comparison with previous weeks.
+- [x] History of uploads and viewing past weeks.
+- [x] Timeframe toggle: 7, 14, 30, and 60 days.
+- [x] Data persistence in Supabase.
+- [x] Row-Level Security (RLS) for access control.
+
+---
+
+## 🛠️ Technologies Used
+
+- [React (Vite)](https://vitejs.dev/)
+- [Supabase](https://supabase.com/)
+- [Deno](https://deno.land/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Anthropic AI](https://www.anthropic.com/)
+- [Figma](https://www.figma.com/)
+
+---
+
+## ✨ Implemented
+
+- ✅ **AI-Generated Insights (Anthropic)**: 3 main insights and 1 weekly goal.
+- ✅ **Comparison with Previous Weeks**: Percentage deltas and percentage-point changes.
+- ✅ **Robust CSV Validation**: Error handling and clear messages.
+- ✅ **Interactive and Responsive Dashboard**: Smooth visualization on mobile and desktop devices.
+- ✅ **Data Persistence in Supabase**: Secure and efficient storage.
+- ✅ **Row-Level Security (RLS)**: Ensures data privacy and security.
+
+---
+
+## 💡 Future Evolution Ideas
+
+- **Technical Improvements**:
+  - Add support for other export formats.
+  - Improve performance for processing large files.
+  - Implement end-to-end (e2e) tests.
+- **Business Improvements**:
+  - Add support for other social media platforms.
+  - Create automated reports for email delivery.
+  - Implement gamification to enhance user engagement.
+
+---
+
+## ▶️ How to Run Locally
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/maycowjordny/isla-analytics.git
+
+   cd isla-analytics
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Add environment variables**
+
+   ```bash
+   SUPABASE_URL=your_supabase_url
+   SUPABASE_ANON_KEY=your_supabase_anon_key
+   ANTHROPIC_API_KEY=your_anthropic_api_key
+   ```
+
+4. **Start the application**
+
+   ```bash
+   npm run dev
+   ```
+
+5. **Access in the browser**
+
+   ```
+   http://localhost:3000
+   ```
+
+---
+
+## 📂 Project Structure
+
+- **src/**: Main application source code.
+- **supabase/**: Edge functions and Supabase configuration.
+- **public/**: Static files.
+- **migrations/**: Database migration scripts.
+- **snippets/**: Auxiliary SQL queries.
+
+---
+
+## 📜 License
+
+This project is exclusively for technical evaluation purposes and should not be used for other purposes without prior authorization.
+
+---
+
+**Developed by Maycow Jordny**
