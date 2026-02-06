@@ -17,7 +17,7 @@ const SHEET_INDEX = {
 const badRequest = (message: string) =>
   new Response(JSON.stringify({ message }), {
     status: 400,
-    headers: { "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
 Deno.serve(async (req) => {
