@@ -23,8 +23,10 @@ import { MomentumChart } from "./components/charts/momentum-chart";
 import { TopPosts } from "./components/charts/top-posts-charts";
 import { DashboardHeader } from "./components/header/dashboard-header";
 import { UploadAnalyticsModal } from "./components/modal/upload-analytics-modal";
+import { AppSidebar } from "./components/sidebar/app-sidebar";
 import { DashboardSkeleton } from "./components/skeleton/dashboard-skeleton";
 import { Button } from "./components/ui/button";
+import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
 import { useKpisFromSummary } from "./hooks/use-kpis-from-summary";
 import type { LinkedInSummaryData } from "./types/summary-types";
 
@@ -212,134 +214,146 @@ function App() {
 
   const isLoading = isPending || !summaryData;
 
-  if (isLoading) return <DashboardSkeleton />;
+  if (isLoading)
+    return (
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <DashboardSkeleton />
+        </SidebarInset>
+      </SidebarProvider>
+    );
 
   return (
-    <div className="min-h-screen bg-background">
-      <main>
-        <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
-          <DashboardHeader
-            onUploadClick={() => setIsModalOpen(true)}
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
-          />
-          <section className="mb-8">
-            <h2 className="section-title mb-4">{periodLabel} Scoreboard</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              <KPICard
-                label="Impressions"
-                value={kpis.impressions.value.toLocaleString()}
-                delta={kpis.impressions.delta}
-                icon={<Eye className="w-4 h-4" />}
-                delay={0}
-                description="Times your posts were seen on LinkedIn."
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <div className="min-h-screen bg-background">
+          <main>
+            <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+              <DashboardHeader
+                onUploadClick={() => setIsModalOpen(true)}
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
               />
-              <KPICard
-                label="Members Reached"
-                value={kpis.membersReached.value.toLocaleString()}
-                delta={kpis.membersReached.delta}
-                icon={<Users className="w-4 h-4" />}
-                delay={50}
-                description="Unique LinkedIn members who saw your content."
-              />
-              <KPICard
-                label="Engagements"
-                value={kpis.engagements.value.toLocaleString()}
-                delta={kpis.engagements.delta}
-                icon={<MessageSquare className="w-4 h-4" />}
-                delay={100}
-                description="The number of times your content was engaged with."
-              />
-              <KPICard
-                label="Engagement Rate"
-                value={kpis.engagementRate.value}
-                suffix=""
-                delta={kpis.engagementRate.delta}
-                icon={<TrendingUp className="w-4 h-4" />}
-                delay={150}
-                description="Post engagements divided by impressions."
-              />
-              <KPICard
-                label="New Followers"
-                value={`+${kpis.newFollowers.value.toLocaleString()}`}
-                delta={kpis.newFollowers.delta}
-                icon={<UserPlus className="w-4 h-4" />}
-                delay={200}
-                description="New followers gained during this period."
-              />
-            </div>
-          </section>
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <MomentumChart data={momentumData} />
-            <FollowerChart
-              data={followerData}
-              totalFollowers={totalFollowers}
-            />
-          </section>
-          <section className="bg-card rounded-2xl border border-border p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  Insights of this week
-                </h3>
-                <p className="text-sm text-slate-400 font-medium">
-                  January 1st - January 7th
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="icon-lg"
-                onClick={fetchInsights}
-                disabled={isLoadingInsights}
-              >
-                <RefreshCw
-                  className={`w-5 h-5 ${isLoadingInsights ? "animate-spin" : ""}`}
+              <section className="mb-8">
+                <h2 className="section-title mb-4">{periodLabel} Scoreboard</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  <KPICard
+                    label="Impressions"
+                    value={kpis.impressions.value.toLocaleString()}
+                    delta={kpis.impressions.delta}
+                    icon={<Eye className="w-4 h-4" />}
+                    delay={0}
+                    description="Times your posts were seen on LinkedIn."
+                  />
+                  <KPICard
+                    label="Members Reached"
+                    value={kpis.membersReached.value.toLocaleString()}
+                    delta={kpis.membersReached.delta}
+                    icon={<Users className="w-4 h-4" />}
+                    delay={50}
+                    description="Unique LinkedIn members who saw your content."
+                  />
+                  <KPICard
+                    label="Engagements"
+                    value={kpis.engagements.value.toLocaleString()}
+                    delta={kpis.engagements.delta}
+                    icon={<MessageSquare className="w-4 h-4" />}
+                    delay={100}
+                    description="The number of times your content was engaged with."
+                  />
+                  <KPICard
+                    label="Engagement Rate"
+                    value={kpis.engagementRate.value}
+                    suffix=""
+                    delta={kpis.engagementRate.delta}
+                    icon={<TrendingUp className="w-4 h-4" />}
+                    delay={150}
+                    description="Post engagements divided by impressions."
+                  />
+                  <KPICard
+                    label="New Followers"
+                    value={`+${kpis.newFollowers.value.toLocaleString()}`}
+                    delta={kpis.newFollowers.delta}
+                    icon={<UserPlus className="w-4 h-4" />}
+                    delay={200}
+                    description="New followers gained during this period."
+                  />
+                </div>
+              </section>
+              <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <MomentumChart data={momentumData} />
+                <FollowerChart
+                  data={followerData}
+                  totalFollowers={totalFollowers}
                 />
-              </Button>
+              </section>
+              <section className="bg-card rounded-2xl border border-border p-8 shadow-sm">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">
+                      Insights of this week
+                    </h3>
+                    <p className="text-sm text-slate-400 font-medium">
+                      January 1st - January 7th
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon-lg"
+                    onClick={fetchInsights}
+                    disabled={isLoadingInsights}
+                  >
+                    <RefreshCw
+                      className={`w-5 h-5 ${isLoadingInsights ? "animate-spin" : ""}`}
+                    />
+                  </Button>
+                </div>
+                <div className="flex flex-col">
+                  <InsightItem
+                    icon={<Trophy className="w-5 h-5" />}
+                    title="What Worked"
+                    description={insightsData?.what_worked}
+                    loading={isLoadingInsights}
+                  />
+                  <InsightItem
+                    icon={<Wrench className="w-5 h-5" />}
+                    title="Improve"
+                    description={insightsData?.improve}
+                    loading={isLoadingInsights}
+                  />
+                  <InsightItem
+                    icon={<Target className="w-5 h-5" />}
+                    title="Next Week Goal"
+                    description={insightsData?.next_week_goal}
+                    loading={isLoadingInsights}
+                  />
+                  <InsightItem
+                    icon={<FlaskConical className="w-5 h-5" />}
+                    title="Try It"
+                    description={insightsData?.try_it}
+                    loading={isLoadingInsights}
+                  />
+                </div>
+              </section>
+              <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <TopPosts
+                  byEngagement={topPostsByEngagement}
+                  byImpressions={topPostsByImpressions}
+                />
+                <AudienceDemographics data={audienceData} />
+              </section>
             </div>
-            <div className="flex flex-col">
-              <InsightItem
-                icon={<Trophy className="w-5 h-5" />}
-                title="What Worked"
-                description={insightsData?.what_worked}
-                loading={isLoadingInsights}
-              />
-              <InsightItem
-                icon={<Wrench className="w-5 h-5" />}
-                title="Improve"
-                description={insightsData?.improve}
-                loading={isLoadingInsights}
-              />
-              <InsightItem
-                icon={<Target className="w-5 h-5" />}
-                title="Next Week Goal"
-                description={insightsData?.next_week_goal}
-                loading={isLoadingInsights}
-              />
-              <InsightItem
-                icon={<FlaskConical className="w-5 h-5" />}
-                title="Try It"
-                description={insightsData?.try_it}
-                loading={isLoadingInsights}
-              />
-            </div>
-          </section>
-
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-            <TopPosts
-              byEngagement={topPostsByEngagement}
-              byImpressions={topPostsByImpressions}
+            <UploadAnalyticsModal
+              isOpen={isModalOpen}
+              onOpenChange={setIsModalOpen}
+              onUpload={handleModalUpload}
             />
-            <AudienceDemographics data={audienceData} />
-          </section>
+          </main>
         </div>
-        <UploadAnalyticsModal
-          isOpen={isModalOpen}
-          onOpenChange={setIsModalOpen}
-          onUpload={handleModalUpload}
-        />
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
 

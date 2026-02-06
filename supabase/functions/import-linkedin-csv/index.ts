@@ -104,20 +104,15 @@ Deno.serve(async (req) => {
       });
     };
 
-    console.time("Processing Discovery");
     await populateDiscovery(
       getSheetData(discoverySheetName),
       getSheetData(workbook.SheetNames[SHEET_INDEX.ENGAGEMENT]),
     );
-    console.timeEnd("Processing Discovery");
 
-    console.time("Processing Followers");
     await populateFollowersDaily(
       getSheetData(workbook.SheetNames[SHEET_INDEX.FOLLOWERS]),
     );
-    console.timeEnd("Processing Followers");
 
-    console.time("Processing Top Posts");
     await populateTopPosts(
       getSheetData(workbook.SheetNames[SHEET_INDEX.TOP_POSTS]),
     );
@@ -127,7 +122,6 @@ Deno.serve(async (req) => {
     await populateAudienceDemographics(
       getSheetData(workbook.SheetNames[SHEET_INDEX.DEMOGRAPHICS]),
     );
-    console.timeEnd("Processing Demographics");
 
     await supabase
       .from("uploads")

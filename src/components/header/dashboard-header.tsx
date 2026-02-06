@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Bell, Settings, Upload } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { DateRangeFilter } from "../filter/date-range-filter";
 
-interface DashboardHeaderProps {
+type DashboardHeaderProps = {
   dateRange: DateRange | undefined;
   onDateRangeChange: (range: DateRange | undefined) => void;
   onUploadClick: () => void;
-}
+};
 
 export function DashboardHeader({
   dateRange,
@@ -17,7 +18,8 @@ export function DashboardHeader({
   return (
     <header className="flex flex-col gap-4 mb-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+        <div className="flex items-center gap-3">
+          <SidebarTrigger className="md:hidden" />
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
             Weekly Brand Report
           </h1>

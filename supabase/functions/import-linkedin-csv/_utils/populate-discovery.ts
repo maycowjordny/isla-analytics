@@ -10,7 +10,6 @@ export async function populateDiscovery(
   const totalMembersReached = Number(rowsDiscovery[2]?.[1] || 0);
   const totalEngagements = Number(rowsDiscovery[3]?.[1] || 0);
 
-  // Criamos uma lista de promessas para rodar em paralelo dentro desta função
   const operations = [];
 
   if (dateRange) {

@@ -1,3 +1,4 @@
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp } from "lucide-react";
 import { PostCard } from "../cards/post-card";
@@ -36,16 +37,24 @@ export function TopPosts({ byEngagement, byImpressions }: TopPostsProps) {
           <TabsTrigger value="impressions">By Impressions</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="engagement" className="space-y-3">
-          {byEngagement.map((post, index) => (
-            <PostCard key={post.id} post={post} rank={index + 1} />
-          ))}
+        <TabsContent value="engagement">
+          <ScrollArea className="h-50">
+            <div className="space-y-3 pr-4">
+              {byEngagement.map((post, index) => (
+                <PostCard key={post.id} post={post} rank={index + 1} />
+              ))}
+            </div>
+          </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="impressions" className="space-y-3">
-          {byImpressions.map((post, index) => (
-            <PostCard key={post.id} post={post} rank={index + 1} />
-          ))}
+        <TabsContent value="impressions">
+          <ScrollArea className="h-50">
+            <div className="space-y-3 pr-4">
+              {byImpressions.map((post, index) => (
+                <PostCard key={post.id} post={post} rank={index + 1} />
+              ))}
+            </div>
+          </ScrollArea>
         </TabsContent>
       </Tabs>
     </div>
