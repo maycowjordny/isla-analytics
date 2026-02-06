@@ -1,15 +1,12 @@
+import { corsHeaders } from "../_shared/cors.ts";
 import { supabase } from "../_shared/supabase.ts";
 import { calculateGrowth } from "./_utils/calculate-growth.ts";
 import { getER } from "./_utils/get-er.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
-
 Deno.serve(async (req) => {
   try {
+    if (req.method === "OPTIONS") {
+      return new Response("ok", { headers: corsHeaders });
+    }
     const url = new URL(req.url);
     const startDateParam = url.searchParams.get("startDate");
     const endDateParam = url.searchParams.get("endDate");

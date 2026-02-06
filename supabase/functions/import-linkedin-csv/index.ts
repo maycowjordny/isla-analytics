@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { corsHeaders } from "../_shared/cors.ts";
 import { supabase } from "../_shared/supabase.ts";
 import { populateAudienceDemographics } from "./_utils/populate-audience-demographics.ts";
 import { populateDiscovery } from "./_utils/populate-discovery.ts";
@@ -20,6 +21,9 @@ const badRequest = (message: string) =>
   });
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
   const uploadId = crypto.randomUUID();
   const userId = `userId-${crypto.randomUUID()}`;
 
