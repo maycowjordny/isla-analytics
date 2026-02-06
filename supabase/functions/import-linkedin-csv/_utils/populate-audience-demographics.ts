@@ -1,6 +1,8 @@
 import { supabase } from "../../_shared/supabase.ts";
 
 export async function populateAudienceDemographics(rows: string[][]) {
+  const dataToUpsert = [];
+
   for (let i = 2; i < rows.length; i++) {
     const row = rows[i];
     if (!row || row.length < 3) continue;
@@ -20,24 +22,17 @@ export async function populateAudienceDemographics(rows: string[][]) {
       percentage = Number(cleanPercentage) || 0;
     }
 
-    if (!percentage) continue;
+    if (percentage > 0) {
+      dataToUpsert.push({ category, label, percentage });
+    }
+  }
 
+  if (dataToUpsert.length > 0) {
     const { error } = await supabase
       .from("linkedin_audience_demographics")
-      .upsert(
-        {
-          category,
-          label,
-          percentage,
-        },
-        { onConflict: "category,label" },
-      );
+      .upsert(dataToUpsert, { onConflict: "category,label" });
 
-    if (error) {
-      console.error(
-        `Error inserting audience demographic (${category} - ${label}):`,
-        error,
-      );
-    }
+    if (error)
+      console.error("Error in bulk upsert Demographics:", error.message);
   }
 }

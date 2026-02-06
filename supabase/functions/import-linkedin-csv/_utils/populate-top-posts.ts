@@ -1,16 +1,15 @@
 import { supabase } from "../../_shared/supabase.ts";
 import { formatDate } from "./format-date.ts";
 
+interface LinkedInPost {
+  post_url: string;
+  published_at: string;
+  engagements: number;
+  impressions: number;
+}
+
 export async function populateTopPosts(rowsTopPosts: string[][]) {
-  const postsMap = new Map<
-    string,
-    {
-      url: string;
-      publishedAt: string;
-      engagements: number;
-      impressions: number;
-    }
-  >();
+  const postsMap = new Map<string, LinkedInPost>();
 
   for (let i = 0; i < rowsTopPosts.length; i++) {
     const row = rowsTopPosts[i];
@@ -27,8 +26,8 @@ export async function populateTopPosts(rowsTopPosts: string[][]) {
           postsMap.get(url1)!.engagements = engagements;
         } else {
           postsMap.set(url1, {
-            url: url1,
-            publishedAt,
+            post_url: url1,
+            published_at: publishedAt,
             engagements,
             impressions: 0,
           });
@@ -48,8 +47,8 @@ export async function populateTopPosts(rowsTopPosts: string[][]) {
             postsMap.get(url2)!.impressions = impressions;
           } else {
             postsMap.set(url2, {
-              url: url2,
-              publishedAt,
+              post_url: url2,
+              published_at: publishedAt,
               engagements: 0,
               impressions,
             });
@@ -59,23 +58,20 @@ export async function populateTopPosts(rowsTopPosts: string[][]) {
     }
   }
 
-  for (const post of postsMap.values()) {
+  const dataToUpsert = Array.from(postsMap.values()).map((post) => {
     const engagementRate =
       post.impressions > 0 ? (post.engagements / post.impressions) * 100 : 0;
+    return {
+      ...post,
+      engagement_rate: Number(engagementRate.toFixed(2)),
+    };
+  });
 
-    const { error } = await supabase.from("linkedin_posts").upsert(
-      {
-        post_url: post.url,
-        published_at: post.publishedAt,
-        impressions: post.impressions,
-        engagements: post.engagements,
-        engagement_rate: Number(engagementRate.toFixed(2)),
-      },
-      { onConflict: "post_url" },
-    );
+  if (dataToUpsert.length > 0) {
+    const { error } = await supabase
+      .from("linkedin_posts")
+      .upsert(dataToUpsert, { onConflict: "post_url" });
 
-    if (error) {
-      console.error(`Error inserting post ${post.url}:`, error);
-    }
+    if (error) console.error("Error in bulk upsert Top Posts:", error.message);
   }
 }
