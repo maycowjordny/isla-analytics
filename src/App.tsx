@@ -1,5 +1,4 @@
-import { api } from "@/services/api";
-import { isAxiosError } from "axios";
+import { supabase } from "@/lib/supabase";
 import { differenceInDays, format, subDays } from "date-fns";
 import {
   Eye,
@@ -50,20 +49,20 @@ function App() {
     form.append("file", file);
 
     try {
-      await api.post("/import-linkedin-csv", form, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const { error } = await supabase.functions.invoke("import-linkedin-csv", {
+        body: form,
       });
+
+      if (error) throw error;
+
       fetchSummary();
       fetchInsights();
       toast.success("File uploaded successfully.");
-    } catch (error) {
+    } catch (error: any) {
       const message =
-        isAxiosError(error) && typeof error.response?.data?.message === "string"
-          ? error.response.data.message
-          : "An error occurred while uploading the file.";
-
+        error.message || "An error occurred while uploading the file.";
       toast.error(message);
-      throw error;
+      console.error(error);
     }
   }
 
@@ -74,15 +73,19 @@ function App() {
       const formattedStart = format(dateRange.from, "yyyy-MM-dd");
       const formattedEnd = format(dateRange.to, "yyyy-MM-dd");
 
-      const response = await api.get("/summary", {
-        params: {
+      const { data, error } = await supabase.functions.invoke("summary", {
+        body: {
           startDate: formattedStart,
           endDate: formattedEnd,
         },
       });
-      setSummaryData(response.data);
+
+      if (error) throw error;
+
+      setSummaryData(data);
     } catch (error) {
       console.error("Error fetching summary:", error);
+      toast.error("Failed to fetch summary data");
     }
   }
 
@@ -94,11 +97,16 @@ function App() {
       const formattedStart = format(dateRange.from, "yyyy-MM-dd");
       const formattedEnd = format(dateRange.to, "yyyy-MM-dd");
 
-      const response = await api.post("/insights", {
-        startDate: formattedStart,
-        endDate: formattedEnd,
+      const { data, error } = await supabase.functions.invoke("insights", {
+        body: {
+          startDate: formattedStart,
+          endDate: formattedEnd,
+        },
       });
-      setInsightsData(response.data);
+
+      if (error) throw error;
+
+      setInsightsData(data);
     } catch (error) {
       console.error("Error fetching insights:", error);
     } finally {

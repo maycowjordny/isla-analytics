@@ -53,29 +53,29 @@ export function UploadAnalyticsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-160 p-8 rounded-4xl border-none">
-        <DialogHeader className="space-y-1">
-          <DialogTitle className="text-2xl font-semibold text-slate-800">
+      <DialogContent className="p-5 sm:p-8 rounded-4xl border-none w-full max-w-[90vw] sm:max-w-4xl max-h-[85vh] sm:max-h-[90vh] overflow-auto">
+        <DialogHeader className="space-y-0.5 sm:space-y-1">
+          <DialogTitle className="text-lg sm:text-2xl font-semibold text-slate-800">
             Check and Upload LinkedIn weekly analytics
           </DialogTitle>
-          <DialogDescription className="text-base text-slate-500">
+          <DialogDescription className="sm:hidden text-sm sm:text-base text-slate-500 leading-relaxed">
             Share your LinkedIn data to get personalized insights
           </DialogDescription>
         </DialogHeader>
-        <div className="bg-[#FFFBEB] border border-[#FEF3C7] rounded-xl p-4 flex gap-3 items-start my-6">
+        <div className="bg-[#FFFBEB] border border-[#FEF3C7] rounded-xl p-3 sm:p-4 flex gap-3 items-start my-4 sm:my-6">
           <Lightbulb className="w-5 h-5 text-[#F59E0B] shrink-0 mt-0.5" />
-          <p className="text-[#92400E] text-sm">
+          <p className="text-[#92400E] text-sm leading-relaxed">
             Don't overthink it. We're looking for:{" "}
             <span className="font-medium">
               impressions, clicks, follows, and top posts.
             </span>
           </p>
         </div>
-        <div className="space-y-4 mb-8">
-          <h4 className="font-semibold text-slate-800">
+        <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+          <h4 className="font-semibold text-slate-800 text-base sm:text-lg">
             How to export your Analytics
           </h4>
-          <ol className="space-y-3 text-slate-600 text-sm">
+          <ol className="space-y-2.5 sm:space-y-3 text-slate-600 text-sm leading-relaxed">
             <li className="flex gap-2">
               <span className="font-medium">1.</span>
               <span>
@@ -101,30 +101,30 @@ export function UploadAnalyticsModal({
             </li>
           </ol>
         </div>
-        <label className="group relative border-2 border-dashed border-slate-200 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer hover:border-slate-300 transition-colors bg-slate-50/50">
+        <label className="group relative border-2 border-dashed border-slate-200 rounded-2xl p-4 sm:p-10 flex flex-col items-center justify-center cursor-pointer hover:border-slate-300 transition-colors bg-slate-50/50">
           <input
             type="file"
             className="hidden"
             accept=".csv,.xlsx"
             onChange={handleFileChange}
           />
-          <Upload className="w-10 h-10 text-slate-400 mb-4 group-hover:scale-110 transition-transform" />
-          <p className="text-slate-700 font-medium">
+          <Upload className="w-6 h-6 sm:w-10 sm:h-10 text-slate-400 mb-3 sm:mb-4 group-hover:scale-110 transition-transform" />
+          <p className="text-slate-700 font-medium text-xs sm:text-base text-center">
             {file ? file.name : "Click to upload or drag and drop"}
           </p>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-slate-400 text-[9px] sm:text-xs mt-1 text-center">
             CSV or Excel files (max 10MB)
           </p>
         </label>
 
-        <p className="text-center text-[10px] text-slate-400 mt-4">
+        <p className="text-center text-[8px] sm:text-[10px] text-slate-400 mt-3 sm:mt-4">
           We only use this data to generate insights for your dashboard.
         </p>
-        <div className="flex justify-center mt-8">
+        <div className="flex justify-center mt-6 sm:mt-8">
           <Button
             onClick={handleSubmit}
             disabled={!file || isUploading}
-            className="px-12 py-6 rounded-xl text-base font-medium transition-all min-w-60"
+            className="px-7 sm:px-12 py-3.5 sm:py-6 rounded-xl text-sm sm:text-base font-medium transition-all min-w-36 sm:min-w-60"
           >
             {isUploading ? "Uploading..." : "Submit Analytics File"}
           </Button>
