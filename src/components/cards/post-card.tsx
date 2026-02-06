@@ -1,4 +1,5 @@
 import { ExternalLink, Eye, MessageSquare } from "lucide-react";
+import { Button } from "../ui/button";
 
 type TopPost = {
   id: string;
@@ -37,9 +38,14 @@ export function PostCard({ post, rank }: { post: TopPost; rank: number }) {
         </div>
       </div>
 
-      <button className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-muted rounded-lg">
-        <ExternalLink className="w-4 h-4 text-muted-foreground" />
-      </button>
+      <Button
+        asChild
+        className="bg-muted opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-muted rounded-lg"
+      >
+        <a href={post.url} target="_blank">
+          <ExternalLink className="w-4 h-4 text-muted-foreground" />
+        </a>
+      </Button>
     </div>
   );
 }

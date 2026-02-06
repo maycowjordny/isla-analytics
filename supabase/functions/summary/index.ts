@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
         .select(
           "published_at, impressions, engagements, engagement_rate, post_url",
         )
-        .gte("published_at", dateIsoStart) // Apenas posts do período atual
+        .gte("published_at", dateIsoStart)
         .lte("published_at", currentEnd.toISOString().split("T")[0])
         .order("engagements", { ascending: false }),
 

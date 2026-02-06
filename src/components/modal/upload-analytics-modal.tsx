@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Lightbulb, Upload } from "lucide-react";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 type UploadModalProps = {
   isOpen: boolean;
@@ -30,12 +31,24 @@ export function UploadAnalyticsModal({
   };
 
   const handleSubmit = async () => {
-    if (!file) return;
+    if (!file) {
+      toast.error("Selecione um arquivo CSV antes de enviar.");
+      return;
+    }
+
+    if (file.size === 0) {
+      toast.error("O CSV está vazio. Envie um arquivo com dados válidos.");
+      return;
+    }
+
     setIsUploading(true);
-    await onUpload(file);
-    setIsUploading(false);
-    onOpenChange(false);
-    setFile(null);
+    try {
+      await onUpload(file);
+      onOpenChange(false);
+      setFile(null);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -67,7 +80,12 @@ export function UploadAnalyticsModal({
               <span className="font-medium">1.</span>
               <span>
                 Open your{" "}
-                <a href="#" className="text-cyan-500 hover:underline">
+                <a
+                  href="https://www.linkedin.com/analytics/creator/content/?timeRange=past_7_days&metricType=IMPRESSIONS"
+                  className="text-cyan-500 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   LinkedIn Creator Analytics
                 </a>{" "}
                 page

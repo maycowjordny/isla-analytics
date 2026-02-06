@@ -1,5 +1,5 @@
-import "@supabase/functions-js/edge-runtime.d.ts";
 import * as XLSX from "xlsx";
+import { supabase } from "../_shared/supabase.ts";
 import { populateAudienceDemographics } from "./_utils/populate-audience-demographics.ts";
 import { populateDiscovery } from "./_utils/populate-discovery.ts";
 import { populateFollowersDaily } from "./_utils/populate-followers_daily.ts";
@@ -13,56 +13,123 @@ const SHEET_INDEX = {
   DEMOGRAPHICS: 4,
 };
 
+const badRequest = (message: string) =>
+  new Response(JSON.stringify({ message }), {
+    status: 400,
+    headers: { "Content-Type": "application/json" },
+  });
+
 Deno.serve(async (req) => {
+  const uploadId = crypto.randomUUID();
+  const userId = `userId-${crypto.randomUUID()}`;
+
   try {
     const form = await req.formData();
     const file = form.get("file");
 
-    if (!file || !(file instanceof File))
-      return new Response("File not found", { status: 400 });
+    if (!file || !(file instanceof File)) {
+      return badRequest("File not provided.");
+    }
+
+    if (file.size === 0) {
+      return badRequest("The CSV file is empty or unreadable.");
+    }
 
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: "array" });
 
-    if (workbook.SheetNames.length < 5) {
-      return new Response(
-        `The Excel file is incomplete. Expected 5 sheets, found ${workbook.SheetNames.length}.`,
-        { status: 400 },
-      );
+    if (!workbook.SheetNames.length) {
+      return badRequest("The file does not contain valid sheets.");
     }
 
     const discoverySheetName = workbook.SheetNames[SHEET_INDEX.DISCOVERY];
-    const engagementSheetName = workbook.SheetNames[SHEET_INDEX.ENGAGEMENT];
-    const followersSheetName = workbook.SheetNames[SHEET_INDEX.FOLLOWERS];
-    const topPostsSheetName = workbook.SheetNames[SHEET_INDEX.TOP_POSTS];
-    const demographicsSheetName = workbook.SheetNames[SHEET_INDEX.DEMOGRAPHICS];
+    const discoverySheet = discoverySheetName
+      ? workbook.Sheets[discoverySheetName]
+      : undefined;
+
+    if (!discoverySheet) {
+      return badRequest("Unable to read data from the CSV/Excel file.");
+    }
+
+    let weekStart = "unknown_start";
+    let weekEnd = "unknown_end";
+
+    const dateRangeString = discoverySheet["B1"]?.v;
+
+    if (typeof dateRangeString === "string") {
+      const dates = dateRangeString
+        .split("-")
+        .map((d) => d.trim().replaceAll("/", "-"));
+
+      if (dates.length >= 2) {
+        weekStart = dates[0];
+        weekEnd = dates[1];
+      }
+    }
+
+    const csvContent = XLSX.utils.sheet_to_csv(discoverySheet);
+    const filePath = `${userId}/${weekStart}_${weekEnd}/${uploadId}.csv`;
+
+    const { error: storageError } = await supabase.storage
+      .from("linkedin_exports")
+      .upload(filePath, csvContent, {
+        contentType: "text/csv",
+        upsert: false,
+      });
+
+    if (storageError) throw new Error(`Storage Error: ${storageError.message}`);
+
+    const { error: dbError } = await supabase.from("uploads").insert({
+      id: uploadId,
+      user_id: userId,
+      file_path: filePath,
+      status: "processing",
+      week_start: weekStart,
+      week_end: weekEnd,
+    });
+
+    if (dbError) console.error("DB Log Error:", dbError.message);
 
     const getSheetData = (sheetName: string) => {
       const sheet = workbook.Sheets[sheetName];
       return XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
     };
 
-    const rowsDiscovery = getSheetData(discoverySheetName);
-    const rowsEngagement = getSheetData(engagementSheetName);
-    const rowsFollowers = getSheetData(followersSheetName);
-    const rowsTopPosts = getSheetData(topPostsSheetName);
-    const rowsAudienceDemographics = getSheetData(demographicsSheetName);
+    await Promise.all([
+      populateDiscovery(
+        getSheetData(discoverySheetName),
+        getSheetData(workbook.SheetNames[SHEET_INDEX.ENGAGEMENT]),
+      ),
+      populateFollowersDaily(
+        getSheetData(workbook.SheetNames[SHEET_INDEX.FOLLOWERS]),
+      ),
+      populateTopPosts(
+        getSheetData(workbook.SheetNames[SHEET_INDEX.TOP_POSTS]),
+      ),
+      populateAudienceDemographics(
+        getSheetData(workbook.SheetNames[SHEET_INDEX.DEMOGRAPHICS]),
+      ),
+    ]);
 
-    await populateDiscovery(rowsDiscovery, rowsEngagement);
+    await supabase
+      .from("uploads")
+      .update({ status: "ready" })
+      .eq("id", uploadId);
 
-    await populateFollowersDaily(rowsFollowers);
-
-    await populateTopPosts(rowsTopPosts);
-
-    await populateAudienceDemographics(rowsAudienceDemographics);
-
-    return new Response(JSON.stringify({ ok: true }), {
+    return new Response(JSON.stringify({ ok: true, id: uploadId }), {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    if (userId) {
+      await supabase
+        .from("uploads")
+        .update({ status: "failed", error_message: errorMessage })
+        .eq("id", uploadId);
+    }
+
+    return new Response(JSON.stringify({ message: errorMessage }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

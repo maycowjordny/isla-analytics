@@ -43,6 +43,9 @@ export function FollowerChart({ data, totalFollowers }: FollowerChartProps) {
 
   let cumulative = startFollowers;
 
+  const currentTotalFollowers =
+    totalFollowers || (data.length ? data[data.length - 1].totalFollowers : 0);
+
   const chartData = data.map((d) => {
     cumulative += d.newFollowers;
     return {
@@ -69,9 +72,7 @@ export function FollowerChart({ data, totalFollowers }: FollowerChartProps) {
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 text-primary">
           <Users className="w-4 h-4" />
           <span className="text-sm font-semibold">
-            {data
-              .reduce((sum, d) => sum + d.totalFollowers, 0)
-              .toLocaleString()}
+            {currentTotalFollowers.toLocaleString()}
           </span>
         </div>
       </div>

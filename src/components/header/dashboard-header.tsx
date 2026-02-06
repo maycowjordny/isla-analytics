@@ -23,20 +23,22 @@ export function DashboardHeader({
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3">
           <Button variant="outline" size="sm" onClick={onUploadClick}>
             <Upload className="w-4 h-4" />
             <span className="hidden sm:inline">Upload New Week</span>
             <span className="sm:hidden">Upload</span>
           </Button>
 
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Settings className="w-4 h-4" />
-          </Button>
+          <div>
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="w-4 h-4" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
+            </Button>
+            <Button variant="ghost" size="icon">
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
       <DateRangeFilter

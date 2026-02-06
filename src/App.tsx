@@ -1,4 +1,5 @@
 import { api } from "@/services/api";
+import { isAxiosError } from "axios";
 import { differenceInDays, format, subDays } from "date-fns";
 import {
   Eye,
@@ -14,8 +15,9 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import type { DateRange } from "react-day-picker";
-import { KPICard } from "./components/cards/analytics-cards";
+import { toast } from "sonner";
 import { InsightItem } from "./components/cards/insight-item-card";
+import { KPICard } from "./components/cards/kpi-cards";
 import { AudienceDemographics } from "./components/charts/audience-demographics";
 import { FollowerChart } from "./components/charts/follower-chart";
 import { MomentumChart } from "./components/charts/momentum-chart";
@@ -53,9 +55,15 @@ function App() {
       });
       fetchSummary();
       fetchInsights();
+      toast.success("File uploaded successfully.");
     } catch (error) {
-      console.error("Erro no upload:", error);
-      alert("Erro ao processar o arquivo.");
+      const message =
+        isAxiosError(error) && typeof error.response?.data?.message === "string"
+          ? error.response.data.message
+          : "An error occurred while uploading the file.";
+
+      toast.error(message);
+      throw error;
     }
   }
 
@@ -74,7 +82,7 @@ function App() {
       });
       setSummaryData(response.data);
     } catch (error) {
-      console.error("Erro ao buscar resumo:", error);
+      console.error("Error fetching summary:", error);
     }
   }
 
@@ -92,7 +100,7 @@ function App() {
       });
       setInsightsData(response.data);
     } catch (error) {
-      console.error("Erro ao buscar insights:", error);
+      console.error("Error fetching insights:", error);
     } finally {
       setIsLoadingInsights(false);
     }

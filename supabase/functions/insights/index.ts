@@ -12,7 +12,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
+    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
+
+    if (!anthropicKey) {
+      throw new Error("ANTHROPIC_API_KEY environment variable is not set.");
+    }
+
     const anthropic = new Anthropic({ apiKey: anthropicKey });
 
     const [dailyMetrics, posts, demographics] = await Promise.all([
@@ -75,7 +80,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : "Erro desconhecido";
+      error instanceof Error ? error.message : "Unknown error";
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
