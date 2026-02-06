@@ -10,6 +10,7 @@ Full Stack application developed as part of the **Technical Challenge – Isla C
 
 ## 🌐 Important Links
 
+- **Live Deployment**: [https://isla-analytics.vercel.app/](https://isla-analytics.vercel.app/)
 - **Lovable Prototype**: [https://analytics-isla-test.lovable.app](https://analytics-isla-test.lovable.app)
 - **Figma Design**: [https://www.figma.com/design/klCQhglpdHXnZCbq51tvFK](https://www.figma.com/design/klCQhglpdHXnZCbq51tvFK)
 - **Download LinkedIn Analytics CSV**: [https://www.linkedin.com/analytics/creator/content/?metricType=IMPRESSIONS&timeRange=past_365_days](https://www.linkedin.com/analytics/creator/content/?metricType=IMPRESSIONS&timeRange=past_365_days)
@@ -58,7 +59,7 @@ Full Stack application developed as part of the **Technical Challenge – Isla C
 
 ---
 
-## ✨ Implemented
+## ✨ Implemented Differentials
 
 - ✅ **AI-Generated Insights (Anthropic)**: 3 main insights and 1 weekly goal.
 - ✅ **Comparison with Previous Weeks**: Percentage deltas and percentage-point changes.
@@ -136,4 +137,4 @@ This project is exclusively for technical evaluation purposes and should not be 
 
 ---
 
-**Developed by Maycow Jordny**
+**Developed with ❤️ by Maycow Jordny**
