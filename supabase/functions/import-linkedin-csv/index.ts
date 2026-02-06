@@ -94,26 +94,40 @@ Deno.serve(async (req) => {
 
     if (dbError) console.error("DB Log Error:", dbError.message);
 
-    const getSheetData = (sheetName: string) => {
+    const getSheetData = (sheetName: string | undefined) => {
+      if (!sheetName) return [];
       const sheet = workbook.Sheets[sheetName];
-      return XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1 });
+      // header: 1 é bom, mas para arquivos gigantes, o XLSX pode ser lento
+      return XLSX.utils.sheet_to_json<string[]>(sheet, {
+        header: 1,
+        defval: "",
+      });
     };
 
-    await Promise.all([
-      populateDiscovery(
-        getSheetData(discoverySheetName),
-        getSheetData(workbook.SheetNames[SHEET_INDEX.ENGAGEMENT]),
-      ),
-      populateFollowersDaily(
-        getSheetData(workbook.SheetNames[SHEET_INDEX.FOLLOWERS]),
-      ),
-      populateTopPosts(
-        getSheetData(workbook.SheetNames[SHEET_INDEX.TOP_POSTS]),
-      ),
-      populateAudienceDemographics(
-        getSheetData(workbook.SheetNames[SHEET_INDEX.DEMOGRAPHICS]),
-      ),
-    ]);
+    console.time("Processing Discovery");
+    await populateDiscovery(
+      getSheetData(discoverySheetName),
+      getSheetData(workbook.SheetNames[SHEET_INDEX.ENGAGEMENT]),
+    );
+    console.timeEnd("Processing Discovery");
+
+    console.time("Processing Followers");
+    await populateFollowersDaily(
+      getSheetData(workbook.SheetNames[SHEET_INDEX.FOLLOWERS]),
+    );
+    console.timeEnd("Processing Followers");
+
+    console.time("Processing Top Posts");
+    await populateTopPosts(
+      getSheetData(workbook.SheetNames[SHEET_INDEX.TOP_POSTS]),
+    );
+    console.timeEnd("Processing Top Posts");
+
+    console.time("Processing Demographics");
+    await populateAudienceDemographics(
+      getSheetData(workbook.SheetNames[SHEET_INDEX.DEMOGRAPHICS]),
+    );
+    console.timeEnd("Processing Demographics");
 
     await supabase
       .from("uploads")

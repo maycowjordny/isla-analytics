@@ -2,14 +2,14 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { supabase } from "../_shared/supabase.ts";
 import { calculateGrowth } from "./_utils/calculate-growth.ts";
 import { getER } from "./_utils/get-er.ts";
+
 Deno.serve(async (req) => {
   try {
     if (req.method === "OPTIONS") {
       return new Response("ok", { headers: corsHeaders });
     }
-    const url = new URL(req.url);
-    const startDateParam = url.searchParams.get("startDate");
-    const endDateParam = url.searchParams.get("endDate");
+    const { startDate: startDateParam, endDate: endDateParam } =
+      await req.json();
 
     let currentStart: Date;
     let currentEnd: Date;
@@ -33,10 +33,11 @@ Deno.serve(async (req) => {
       followersResponse,
       postsResponse,
       demographicsResponse,
+      summariesResponse,
     ] = await Promise.all([
       supabase
         .from("linkedin_daily_metrics")
-        .select("impressions, engagements, members_reached, metric_date")
+        .select("impressions, engagements, metric_date")
         .gte("metric_date", dateIsoPrevStart)
         .lte("metric_date", currentEnd.toISOString().split("T")[0])
         .order("metric_date", { ascending: true }),
@@ -61,12 +62,18 @@ Deno.serve(async (req) => {
         .from("linkedin_audience_demographics")
         .select("category, label, percentage")
         .order("percentage", { ascending: false }),
+      supabase
+        .from("linkedin_import_summaries")
+        .select("total_members_reached, imported_at, date_range_text")
+        .order("imported_at", { ascending: false })
+        .limit(2),
     ]);
 
     if (metricsResponse.error) throw metricsResponse.error;
     if (followersResponse.error) throw followersResponse.error;
     if (postsResponse.error) throw postsResponse.error;
     if (demographicsResponse.error) throw demographicsResponse.error;
+    if (summariesResponse.error) throw summariesResponse.error;
 
     const currentPeriodMetrics = metricsResponse.data.filter(
       (d) => new Date(d.metric_date) >= currentStart,
@@ -83,7 +90,20 @@ Deno.serve(async (req) => {
 
     const currentER = getER(currentPeriodMetrics);
     const prevER = getER(prevPeriodMetrics);
-    const erGrowth = prevER > 0 ? currentER - prevER : 0;
+    const erGrowth = prevER > 0 ? ((currentER - prevER) / prevER) * 100 : 0;
+
+    const latestSummary = summariesResponse.data[0];
+    const previousSummary = summariesResponse.data[1];
+
+    const currentMembersReached = latestSummary?.total_members_reached || 0;
+    const prevMembersReached = previousSummary?.total_members_reached || 0;
+
+    let membersReachedDelta = 0;
+    if (prevMembersReached > 0) {
+      membersReachedDelta =
+        ((currentMembersReached - prevMembersReached) / prevMembersReached) *
+        100;
+    }
 
     const dailyMomentumChart = currentPeriodMetrics.map((day) => {
       const dailyER =
@@ -132,11 +152,11 @@ Deno.serve(async (req) => {
             "impressions",
             currentStart,
           ),
-          members_reached: calculateGrowth(
-            metricsResponse.data,
-            "members_reached",
-            currentStart,
-          ),
+          members_reached: {
+            value: currentMembersReached,
+            previous: prevMembersReached,
+            delta: Number(membersReachedDelta.toFixed(2)),
+          },
           engagements: calculateGrowth(
             metricsResponse.data,
             "engagements",
@@ -148,8 +168,10 @@ Deno.serve(async (req) => {
             currentStart,
           ),
           engagement_rate: {
+            value: currentER.toFixed(2) + "%",
             total: currentER.toFixed(2) + "%",
-            percentageChange: erGrowth.toFixed(2) + "pp",
+            percentageChange: erGrowth.toFixed(2),
+            delta: erGrowth,
             isPositive: erGrowth >= 0,
           },
         },

@@ -1,6 +1,20 @@
-export interface MetricDetail {
-  total: number | string;
-  percentageChange: string;
+export interface StandardMetric {
+  total: number;
+  percentageChange: number;
+  previous: number;
+}
+
+export interface MembersReachedMetric {
+  value: number;
+  previous: number;
+  delta: number;
+}
+
+export interface EngagementRateMetric {
+  value: string;
+  total: string;
+  percentageChange: number | string;
+  delta: number;
   isPositive: boolean;
 }
 
@@ -32,11 +46,12 @@ export interface AudienceItem {
 
 export interface LinkedInSummaryData {
   summary: {
-    impressions: MetricDetail;
-    members_reached: MetricDetail;
-    engagements: MetricDetail;
-    new_followers: MetricDetail;
-    engagement_rate: MetricDetail;
+    impressions: StandardMetric;
+    engagements: StandardMetric;
+    new_followers: StandardMetric;
+
+    members_reached: MembersReachedMetric;
+    engagement_rate: EngagementRateMetric;
   };
   daily_momentum_chart: DailyMomentum[];
   follower_growth_chart: FollowerGrowth[];

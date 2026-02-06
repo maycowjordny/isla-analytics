@@ -210,7 +210,9 @@ function App() {
     companySize: getDemographic(["Company size", "Tamanho da empresa"]),
   };
 
-  if (isPending) return <DashboardSkeleton />;
+  const isLoading = isPending || !summaryData;
+
+  if (isLoading) return <DashboardSkeleton />;
 
   return (
     <div className="min-h-screen bg-background">

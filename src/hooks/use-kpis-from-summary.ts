@@ -1,22 +1,23 @@
-import type { LinkedInSummaryData } from "@/types/summary-types";
+import type { LinkedInSummaryData } from "../types/summary-types";
 
 export function useKpisFromSummary(summaryData: LinkedInSummaryData | null) {
   const summary = summaryData?.summary;
+
   return {
     impressions: {
       value: summary?.impressions?.total
         ? Number(summary.impressions.total)
         : 0,
       delta: summary?.impressions?.percentageChange
-        ? parseFloat(summary.impressions.percentageChange)
+        ? Number(Number(summary.impressions.percentageChange).toFixed(2))
         : 0,
     },
     membersReached: {
-      value: summary?.members_reached?.total
-        ? Number(summary.members_reached.total)
+      value: summary?.members_reached?.value
+        ? Number(summary.members_reached.value)
         : 0,
-      delta: summary?.members_reached?.percentageChange
-        ? parseFloat(summary.members_reached.percentageChange)
+      delta: summary?.members_reached?.delta
+        ? Number(Number(summary.members_reached.delta).toFixed(2))
         : 0,
     },
     engagements: {
@@ -24,15 +25,13 @@ export function useKpisFromSummary(summaryData: LinkedInSummaryData | null) {
         ? Number(summary.engagements.total)
         : 0,
       delta: summary?.engagements?.percentageChange
-        ? parseFloat(summary.engagements.percentageChange)
+        ? Number(Number(summary.engagements.percentageChange).toFixed(2))
         : 0,
     },
     engagementRate: {
-      value: summary?.engagement_rate?.total ?? "0.00%",
-      delta: summary?.engagement_rate?.percentageChange
-        ? parseFloat(
-            String(summary.engagement_rate.percentageChange).replace("pp", ""),
-          )
+      value: summary?.engagement_rate?.value ?? "0.00%",
+      delta: summary?.engagement_rate?.delta
+        ? Number(Number(summary.engagement_rate.delta).toFixed(2))
         : 0,
     },
     newFollowers: {
@@ -40,7 +39,7 @@ export function useKpisFromSummary(summaryData: LinkedInSummaryData | null) {
         ? Number(summary.new_followers.total)
         : 0,
       delta: summary?.new_followers?.percentageChange
-        ? parseFloat(summary.new_followers.percentageChange)
+        ? Number(Number(summary.new_followers.percentageChange).toFixed(2))
         : 0,
     },
   };
