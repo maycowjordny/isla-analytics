@@ -10,27 +10,29 @@ export async function populateDiscovery(
   const totalMembersReached = Number(rowsDiscovery[2]?.[1] || 0);
   const totalEngagements = Number(rowsDiscovery[3]?.[1] || 0);
 
-  if (dateRange) {
-    const { error: summaryError } = await supabase
-      .from("linkedin_import_summaries")
-      .insert({
-        date_range_text: dateRange,
-        total_impressions: totalImpressions,
-        total_members_reached: totalMembersReached,
-        total_engagements: totalEngagements,
-      });
+  // Criamos uma lista de promessas para rodar em paralelo dentro desta função
+  const operations = [];
 
-    if (summaryError) {
-      console.error("Error saving summary:", summaryError);
-    }
+  if (dateRange) {
+    operations.push(
+      supabase
+        .from("linkedin_import_summaries")
+        .insert({
+          date_range_text: dateRange,
+          total_impressions: totalImpressions,
+          total_members_reached: totalMembersReached,
+          total_engagements: totalEngagements,
+        })
+        .then(({ error }) => {
+          if (error) console.error("Error saving summary:", error);
+        }),
+    );
   }
 
-  const cleanRows = rowsEngagement.slice(1);
-  const metricsToSave = cleanRows
+  const metricsToSave = rowsEngagement
+    .slice(1)
     .map((row) => {
-      const rawDate = row[0];
-      const formattedDate = formatDate(rawDate);
-
+      const formattedDate = formatDate(row[0]);
       if (!formattedDate) return null;
 
       return {
@@ -39,16 +41,20 @@ export async function populateDiscovery(
         engagements: Number(row[2] || 0),
       };
     })
-    .filter((item) => item !== null);
+    .filter((item): item is NonNullable<typeof item> => item !== null);
 
   if (metricsToSave.length > 0) {
-    const { error: dailyError } = await supabase
-      .from("linkedin_daily_metrics")
-      .upsert(metricsToSave, {
-        onConflict: "metric_date",
-        ignoreDuplicates: false,
-      });
-
-    if (dailyError) throw dailyError;
+    operations.push(
+      supabase
+        .from("linkedin_daily_metrics")
+        .upsert(metricsToSave, {
+          onConflict: "metric_date",
+        })
+        .then(({ error }) => {
+          if (error) throw error;
+        }),
+    );
   }
+
+  await Promise.all(operations);
 }
