@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
       .eq("id", uploadId);
 
     return new Response(JSON.stringify({ ok: true, id: uploadId }), {
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     const errorMessage =
@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ message: errorMessage }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
