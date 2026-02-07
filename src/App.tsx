@@ -21,6 +21,7 @@ import { AudienceDemographics } from "./components/charts/audience-demographics"
 import { FollowerChart } from "./components/charts/follower-chart";
 import { MomentumChart } from "./components/charts/momentum-chart";
 import { TopPosts } from "./components/charts/top-posts-charts";
+import { EmptyInsightSection } from "./components/emptystate/insight/EmptyInsightSection";
 import { DashboardHeader } from "./components/header/dashboard-header";
 import { UploadAnalyticsModal } from "./components/modal/upload-analytics-modal";
 import { AppSidebar } from "./components/sidebar/app-sidebar";
@@ -215,6 +216,7 @@ function App() {
     }
     return [];
   };
+
   const audienceData = {
     jobTitles: getDemographic(["Job titles", "Cargos"]),
     locations: getDemographic(["Locations", "Localidades"]),
@@ -224,6 +226,15 @@ function App() {
   };
 
   const isLoading = isPending || !summaryData;
+
+  const formattedDateRange = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return "Select a period";
+
+    const start = format(dateRange.from, "MMMM do");
+    const end = format(dateRange.to, "MMMM do");
+
+    return `${start} - ${end}`;
+  }, [dateRange]);
 
   if (isLoading)
     return (
@@ -307,7 +318,7 @@ function App() {
                       Insights of this week
                     </h3>
                     <p className="text-sm text-slate-400 font-medium">
-                      January 1st - January 7th
+                      {formattedDateRange}
                     </p>
                   </div>
                   <Button
@@ -321,32 +332,36 @@ function App() {
                     />
                   </Button>
                 </div>
-                <div className="flex flex-col">
-                  <InsightItem
-                    icon={<Trophy className="w-5 h-5" />}
-                    title="What Worked"
-                    description={insightsData?.what_worked}
-                    loading={isLoadingInsights}
-                  />
-                  <InsightItem
-                    icon={<Wrench className="w-5 h-5" />}
-                    title="Improve"
-                    description={insightsData?.improve}
-                    loading={isLoadingInsights}
-                  />
-                  <InsightItem
-                    icon={<Target className="w-5 h-5" />}
-                    title="Next Week Goal"
-                    description={insightsData?.next_week_goal}
-                    loading={isLoadingInsights}
-                  />
-                  <InsightItem
-                    icon={<FlaskConical className="w-5 h-5" />}
-                    title="Try It"
-                    description={insightsData?.try_it}
-                    loading={isLoadingInsights}
-                  />
-                </div>
+                {insightsData ? (
+                  <div className="flex flex-col">
+                    <InsightItem
+                      icon={<Trophy className="w-5 h-5" />}
+                      title="What Worked"
+                      description={insightsData?.what_worked}
+                      loading={isLoadingInsights}
+                    />
+                    <InsightItem
+                      icon={<Wrench className="w-5 h-5" />}
+                      title="Improve"
+                      description={insightsData?.improve}
+                      loading={isLoadingInsights}
+                    />
+                    <InsightItem
+                      icon={<Target className="w-5 h-5" />}
+                      title="Next Week Goal"
+                      description={insightsData?.next_week_goal}
+                      loading={isLoadingInsights}
+                    />
+                    <InsightItem
+                      icon={<FlaskConical className="w-5 h-5" />}
+                      title="Try It"
+                      description={insightsData?.try_it}
+                      loading={isLoadingInsights}
+                    />
+                  </div>
+                ) : (
+                  <EmptyInsightSection />
+                )}
               </section>
               <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
                 <TopPosts

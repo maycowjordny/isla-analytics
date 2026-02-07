@@ -3,21 +3,27 @@ import { formatDate } from "./format-date.ts";
 
 export async function populateFollowersDaily(rows: string[][]) {
   const finalTotalFollowers = Number(rows[0]?.[1] ?? 0);
+
+  const headerLabel = rows[2]?.[0]?.toString().toLowerCase() ?? "";
+  const isPTBR = headerLabel.includes("data");
+
   const entries = [];
 
-  for (let i = 2; i < rows.length; i++) {
+  for (let i = 3; i < rows.length; i++) {
     const row = rows[i];
     if (!row || row.length < 2) continue;
 
     const dateStr = row[0]?.toString().trim() ?? "";
     const newFollowers = Number(row[1] ?? 0);
 
-    if (!dateStr || !dateStr.includes("/")) continue;
+    const formattedDate = formatDate(dateStr, isPTBR);
 
-    entries.push({
-      metric_date: dateStr,
-      new_followers: newFollowers,
-    });
+    if (formattedDate) {
+      entries.push({
+        metric_date: formattedDate,
+        new_followers: newFollowers,
+      });
+    }
   }
 
   entries.sort(
@@ -29,8 +35,9 @@ export async function populateFollowersDaily(rows: string[][]) {
 
   const dataToUpsert = entries.map((entry) => {
     const dailyTotal = currentRunningTotal;
+
     const formattedData = {
-      metric_date: formatDate(entry.metric_date),
+      metric_date: entry.metric_date,
       new_followers: entry.new_followers,
       total_followers: dailyTotal,
     };

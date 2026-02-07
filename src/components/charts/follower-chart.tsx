@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { EmptyFollowerChart } from "../emptystate/chart/EmptyFollowerChart";
 
 interface FollowerChartProps {
   data: { date: string; newFollowers: number; totalFollowers: number }[];
@@ -38,22 +39,27 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function FollowerChart({ data, totalFollowers }: FollowerChartProps) {
-  const startFollowers =
-    totalFollowers - data.reduce((sum, d) => sum + d.newFollowers, 0);
+  const hasData = data && data.length > 0;
+
+  const startFollowers = hasData
+    ? totalFollowers - data.reduce((sum, d) => sum + d.newFollowers, 0)
+    : 0;
 
   let cumulative = startFollowers;
 
   const currentTotalFollowers =
-    totalFollowers || (data.length ? data[data.length - 1].totalFollowers : 0);
+    totalFollowers || (hasData ? data[data.length - 1].totalFollowers : 0);
 
-  const chartData = data.map((d) => {
-    cumulative += d.newFollowers;
-    return {
-      ...d,
-      date: format(parseISO(d.date), "MMM d"),
-      cumulative,
-    };
-  });
+  const chartData = hasData
+    ? data.map((d) => {
+        cumulative += d.newFollowers;
+        return {
+          ...d,
+          date: format(parseISO(d.date), "MMM d"),
+          cumulative,
+        };
+      })
+    : [];
 
   return (
     <div
@@ -77,65 +83,69 @@ export function FollowerChart({ data, totalFollowers }: FollowerChartProps) {
         </div>
       </div>
 
-      <div className="h-90">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart
-            data={chartData}
-            margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="hsl(var(--border))"
-              vertical={false}
-            />
-            <XAxis
-              dataKey="date"
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              yAxisId="left"
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              domain={["dataMin - 20", "dataMax + 20"]}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar
-              yAxisId="left"
-              dataKey="newFollowers"
-              fill="hsl(var(--chart-primary))"
-              radius={[4, 4, 0, 0]}
-              name="New Followers"
-              barSize={32}
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="cumulative"
-              stroke="hsl(var(--chart-secondary))"
-              strokeWidth={2}
-              dot={{
-                fill: "hsl(var(--chart-secondary))",
-                strokeWidth: 0,
-                r: 3,
-              }}
-              name="Cumulative"
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
+      {!hasData ? (
+        <EmptyFollowerChart />
+      ) : (
+        <div className="h-90">
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              data={chartData}
+              margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="hsl(var(--border))"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="date"
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                yAxisId="left"
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                domain={["dataMin - 20", "dataMax + 20"]}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar
+                yAxisId="left"
+                dataKey="newFollowers"
+                fill="hsl(var(--chart-primary))"
+                radius={[4, 4, 0, 0]}
+                name="New Followers"
+                barSize={32}
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="cumulative"
+                stroke="hsl(var(--chart-secondary))"
+                strokeWidth={2}
+                dot={{
+                  fill: "hsl(var(--chart-secondary))",
+                  strokeWidth: 0,
+                  r: 3,
+                }}
+                name="Cumulative"
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp } from "lucide-react";
 import { PostCard } from "../cards/post-card";
+import { EmptyPostList } from "../emptystate/chart/EmptyPostList";
 
 type TopPost = {
   id: string;
@@ -19,6 +20,9 @@ type TopPostsProps = {
 };
 
 export function TopPosts({ byEngagement, byImpressions }: TopPostsProps) {
+  const hasEngagementData = byEngagement && byEngagement.length > 0;
+  const hasImpressionsData = byImpressions && byImpressions.length > 0;
+
   return (
     <div
       className="chart-card animate-fade-in"
@@ -38,23 +42,31 @@ export function TopPosts({ byEngagement, byImpressions }: TopPostsProps) {
         </TabsList>
 
         <TabsContent value="engagement">
-          <ScrollArea className="h-50">
-            <div className="space-y-3 pr-4">
-              {byEngagement.map((post, index) => (
-                <PostCard key={post.id} post={post} rank={index + 1} />
-              ))}
-            </div>
-          </ScrollArea>
+          {hasEngagementData ? (
+            <ScrollArea className="h-50">
+              <div className="space-y-3 pr-4">
+                {byEngagement.map((post, index) => (
+                  <PostCard key={post.id} post={post} rank={index + 1} />
+                ))}
+              </div>
+            </ScrollArea>
+          ) : (
+            <EmptyPostList />
+          )}
         </TabsContent>
 
         <TabsContent value="impressions">
-          <ScrollArea className="h-50">
-            <div className="space-y-3 pr-4">
-              {byImpressions.map((post, index) => (
-                <PostCard key={post.id} post={post} rank={index + 1} />
-              ))}
-            </div>
-          </ScrollArea>
+          {hasImpressionsData ? (
+            <ScrollArea className="h-50">
+              <div className="space-y-3 pr-4">
+                {byImpressions.map((post, index) => (
+                  <PostCard key={post.id} post={post} rank={index + 1} />
+                ))}
+              </div>
+            </ScrollArea>
+          ) : (
+            <EmptyPostList />
+          )}
         </TabsContent>
       </Tabs>
     </div>

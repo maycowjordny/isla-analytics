@@ -93,7 +93,6 @@ Deno.serve(async (req) => {
     const getSheetData = (sheetName: string | undefined) => {
       if (!sheetName) return [];
       const sheet = workbook.Sheets[sheetName];
-      // header: 1 é bom, mas para arquivos gigantes, o XLSX pode ser lento
       return XLSX.utils.sheet_to_json<string[]>(sheet, {
         header: 1,
         defval: "",

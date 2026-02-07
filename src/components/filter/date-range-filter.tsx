@@ -98,37 +98,50 @@ export function DateRangeFilter({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="end">
-          <div className="flex">
-            <div className="border-r border-border p-3 space-y-1">
+          <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-border">
+            <div className="p-3 bg-muted/20 md:w-48">
               <p className="text-xs font-medium text-muted-foreground mb-2 px-2">
                 Quick select
               </p>
-              {presets.map((preset) => (
-                <Button
-                  key={preset.days}
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    "w-full justify-start h-8 text-sm",
-                    activePreset === preset.days &&
-                      "bg-accent text-accent-foreground",
-                  )}
-                  onClick={() => handlePresetClick(preset.days)}
-                >
-                  Last {preset.label}
-                </Button>
-              ))}
+              <div className="grid grid-cols-2 gap-1 md:flex md:flex-col">
+                {presets.map((preset) => (
+                  <Button
+                    key={preset.days}
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "justify-start h-8 text-sm",
+                      activePreset === preset.days &&
+                        "bg-accent text-accent-foreground",
+                    )}
+                    onClick={() => handlePresetClick(preset.days)}
+                  >
+                    Last {preset.label}
+                  </Button>
+                ))}
+              </div>
             </div>
             <div className="p-3">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={onDateRangeChange}
-                numberOfMonths={2}
-                defaultMonth={dateRange?.from || subDays(new Date(), 30)}
-                className="pointer-events-auto"
-                disabled={(date) => date > new Date()}
-              />
+              <div className="md:hidden">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={onDateRangeChange}
+                  numberOfMonths={1}
+                  defaultMonth={dateRange?.from}
+                  disabled={(date) => date > new Date()}
+                />
+              </div>
+              <div className="hidden md:block">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={onDateRangeChange}
+                  numberOfMonths={2}
+                  defaultMonth={dateRange?.from}
+                  disabled={(date) => date > new Date()}
+                />
+              </div>
             </div>
           </div>
         </PopoverContent>

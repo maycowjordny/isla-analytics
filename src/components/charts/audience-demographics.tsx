@@ -1,5 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Building, Building2, MapPin, Users } from "lucide-react";
+import {
+  Briefcase,
+  Building,
+  Building2,
+  MapPin,
+  PieChart,
+  Users,
+} from "lucide-react";
 
 type DemographicItem = {
   name: string;
@@ -17,6 +24,18 @@ type AudienceData = {
 type AudienceDemographicsProps = {
   data: AudienceData;
 };
+
+function EmptyDemographicList() {
+  return (
+    <div className="py-10 flex flex-col items-center justify-center text-muted-foreground">
+      <PieChart className="w-10 h-10 mb-3 opacity-40" />
+      <p className="text-sm font-medium">Not enough data available</p>
+      <p className="text-xs mt-1">
+        Demographic data will appear here once there's enough activity.
+      </p>
+    </div>
+  );
+}
 
 function DemographicBar({
   item,
@@ -45,6 +64,10 @@ function DemographicBar({
 }
 
 function DemographicList({ items }: { items: DemographicItem[] }) {
+  if (!items || items.length === 0) {
+    return <EmptyDemographicList />;
+  }
+
   const maxPercentage = Math.max(...items.map((i) => i.percentage));
 
   return (

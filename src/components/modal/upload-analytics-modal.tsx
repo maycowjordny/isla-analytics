@@ -60,19 +60,19 @@ export function UploadAnalyticsModal({
       if (ext === "csv" || ext === "xlsx") {
         setFile(droppedFile);
       } else {
-        toast.error("Formato inválido. Envie um arquivo CSV ou Excel.");
+        toast.error("Invalid format. Please upload a CSV or Excel file.");
       }
     }
   };
 
   const handleSubmit = async () => {
     if (!file) {
-      toast.error("Selecione um arquivo CSV antes de enviar.");
+      toast.error("Please select a CSV file before submitting.");
       return;
     }
 
     if (file.size === 0) {
-      toast.error("O CSV está vazio. Envie um arquivo com dados válidos.");
+      toast.error("CSV is empty. Please select a valid file.");
       return;
     }
 
