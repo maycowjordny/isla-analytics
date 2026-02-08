@@ -4,100 +4,118 @@ import { calculateGrowth } from "./_utils/calculate-growth.ts";
 import { getER } from "./_utils/get-er.ts";
 
 Deno.serve(async (req) => {
+  // Tratamento de OPTIONS (CORS)
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   try {
-    if (req.method === "OPTIONS") {
-      return new Response("ok", { headers: corsHeaders });
-    }
     const { startDate: startDateParam, endDate: endDateParam } =
       await req.json();
 
-    let currentStart: Date;
-    let currentEnd: Date;
-
-    if (startDateParam && endDateParam) {
-      currentStart = new Date(startDateParam);
-      currentEnd = new Date(endDateParam);
-    } else {
-      const now = new Date();
-      currentEnd = now;
-      currentStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    }
+    // 1. Lógica de Datas Simplificada
+    const now = new Date();
+    const currentEnd = endDateParam ? new Date(endDateParam) : now;
+    const currentStart = startDateParam
+      ? new Date(startDateParam)
+      : new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const durationTime = currentEnd.getTime() - currentStart.getTime();
     const previousStart = new Date(currentStart.getTime() - durationTime);
+
+    // Formatação ISO para o Supabase
     const dateIsoStart = currentStart.toISOString().split("T")[0];
+    const dateIsoEnd = currentEnd.toISOString().split("T")[0];
     const dateIsoPrevStart = previousStart.toISOString().split("T")[0];
 
-    const [
-      metricsResponse,
-      followersResponse,
-      postsResponse,
-      demographicsResponse,
-      summariesResponse,
-    ] = await Promise.all([
-      supabase
-        .from("linkedin_daily_metrics")
-        .select("impressions, engagements, metric_date")
-        .gte("metric_date", dateIsoPrevStart)
-        .lte("metric_date", currentEnd.toISOString().split("T")[0])
-        .order("metric_date", { ascending: true }),
+    // 2. Execução das Queries em Paralelo
+    // Mantemos as respostas separadas aqui para preservar a TIPAGEM do TypeScript
+    const [metricsRes, followersRes, postsRes, demographicsRes, summariesRes] =
+      await Promise.all([
+        supabase
+          .from("linkedin_daily_metrics")
+          .select("impressions, engagements, metric_date")
+          .gte("metric_date", dateIsoPrevStart)
+          .lte("metric_date", dateIsoEnd)
+          .order("metric_date", { ascending: true }),
 
-      supabase
-        .from("linkedin_followers_daily")
-        .select("new_followers, total_followers, metric_date")
-        .gte("metric_date", dateIsoPrevStart)
-        .lte("metric_date", currentEnd.toISOString().split("T")[0])
-        .order("metric_date", { ascending: true }),
+        supabase
+          .from("linkedin_followers_daily")
+          .select("new_followers, total_followers, metric_date")
+          .gte("metric_date", dateIsoPrevStart)
+          .lte("metric_date", dateIsoEnd)
+          .order("metric_date", { ascending: true }),
 
-      supabase
-        .from("linkedin_posts")
-        .select(
-          "published_at, impressions, engagements, engagement_rate, post_url",
-        )
-        .gte("published_at", dateIsoStart)
-        .lte("published_at", currentEnd.toISOString().split("T")[0])
-        .order("engagements", { ascending: false }),
+        supabase
+          .from("linkedin_posts")
+          .select(
+            "published_at, impressions, engagements, engagement_rate, post_url",
+          )
+          .gte("published_at", dateIsoStart)
+          .lte("published_at", dateIsoEnd)
+          .order("engagements", { ascending: false }),
 
-      supabase
-        .from("linkedin_audience_demographics")
-        .select("category, label, percentage")
-        .order("percentage", { ascending: false }),
-      supabase
-        .from("linkedin_import_summaries")
-        .select("total_members_reached, imported_at, date_range_text")
-        .order("imported_at", { ascending: false })
-        .limit(2),
-    ]);
+        supabase
+          .from("linkedin_audience_demographics")
+          .select("category, label, percentage")
+          .order("percentage", { ascending: false }),
 
-    if (metricsResponse.error) throw metricsResponse.error;
-    if (followersResponse.error) throw followersResponse.error;
-    if (postsResponse.error) throw postsResponse.error;
-    if (demographicsResponse.error) throw demographicsResponse.error;
-    if (summariesResponse.error) throw summariesResponse.error;
+        supabase
+          .from("linkedin_import_summaries")
+          .select("total_members_reached, imported_at, date_range_text")
+          .order("imported_at", { ascending: false })
+          .limit(2),
+      ]);
 
-    const currentPeriodMetrics = metricsResponse.data.filter(
+    // 3. Verificação de Erros Unificada (Substitui os 5 ifs)
+    // Criamos um array apenas para checar se existe algum erro
+    const firstError = [
+      metricsRes,
+      followersRes,
+      postsRes,
+      demographicsRes,
+      summariesRes,
+    ].find((res) => res.error)?.error;
+
+    if (firstError) throw firstError;
+
+    // 4. Extração Segura dos Dados
+    // Usamos '|| []' para garantir que nunca seja null, evitando quebras nos filtros
+    const metricsData = metricsRes.data || [];
+    const followersData = followersRes.data || [];
+    const postsData = postsRes.data || [];
+    const demographicsData = demographicsRes.data || [];
+    const summariesData = summariesRes.data || [];
+
+    // 5. Processamento (Filtros de Data)
+    const currentPeriodMetrics = metricsData.filter(
       (d) => new Date(d.metric_date) >= currentStart,
     );
-    const prevPeriodMetrics = metricsResponse.data.filter(
-      (d) =>
-        new Date(d.metric_date) < currentStart &&
-        new Date(d.metric_date) >= previousStart,
-    );
+    const prevPeriodMetrics = metricsData.filter((d) => {
+      const dDate = new Date(d.metric_date);
+      return dDate < currentStart && dDate >= previousStart;
+    });
 
-    const currentPeriodFollowers = followersResponse.data.filter(
+    const currentPeriodFollowers = followersData.filter(
       (d) => new Date(d.metric_date) >= currentStart,
     );
 
+    // 6. Cálculos
     const currentER = getER(currentPeriodMetrics);
     const prevER = getER(prevPeriodMetrics);
     const erGrowth = prevER > 0 ? ((currentER - prevER) / prevER) * 100 : 0;
 
-    const latestSummary = summariesResponse.data[0];
-    const previousSummary = summariesResponse.data[1];
-
+    const latestSummary = summariesData[0];
+    const previousSummary = summariesData[1];
     const currentMembersReached = latestSummary?.total_members_reached || 0;
     const prevMembersReached = previousSummary?.total_members_reached || 0;
+    const membersReachedDelta =
+      prevMembersReached > 0
+        ? ((currentMembersReached - prevMembersReached) / prevMembersReached) *
+          100
+        : 0;
 
+    // 7. Montagem dos Charts e Objetos de Resposta
     const dailyMomentumChart = currentPeriodMetrics.map((day) => {
       const dailyER =
         day.impressions > 0 ? (day.engagements / day.impressions) * 100 : 0;
@@ -115,7 +133,7 @@ Deno.serve(async (req) => {
       total_followers: day.total_followers,
     }));
 
-    const topContentList = postsResponse.data.map((post) => ({
+    const topContentList = postsData.map((post) => ({
       url: post.post_url,
       published_at: post.published_at,
       impressions: post.impressions,
@@ -123,11 +141,9 @@ Deno.serve(async (req) => {
       engagement_rate: post.engagement_rate,
     }));
 
-    const audienceProfile = demographicsResponse.data.reduce(
+    const audienceProfile = demographicsData.reduce(
       (acc, item) => {
-        if (!acc[item.category]) {
-          acc[item.category] = [];
-        }
+        if (!acc[item.category]) acc[item.category] = [];
         acc[item.category].push({
           label: item.label,
           percentage: item.percentage,
@@ -137,25 +153,27 @@ Deno.serve(async (req) => {
       {} as Record<string, Array<{ label: string; percentage: number }>>,
     );
 
+    // 8. Retorno Final
     return new Response(
       JSON.stringify({
         summary: {
           impressions: calculateGrowth(
-            metricsResponse.data,
+            metricsData,
             "impressions",
             currentStart,
           ),
           members_reached: {
             value: currentMembersReached,
             previous: prevMembersReached,
+            delta: membersReachedDelta,
           },
           engagements: calculateGrowth(
-            metricsResponse.data,
+            metricsData,
             "engagements",
             currentStart,
           ),
           new_followers: calculateGrowth(
-            followersResponse.data,
+            followersData,
             "new_followers",
             currentStart,
           ),

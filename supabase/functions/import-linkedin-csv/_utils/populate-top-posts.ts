@@ -11,6 +11,10 @@ interface LinkedInPost {
 export async function populateTopPosts(rowsTopPosts: string[][]) {
   const postsMap = new Map<string, LinkedInPost>();
 
+  const firstRowText = rowsTopPosts[0]?.[1]?.toString().toLowerCase() ?? "";
+  const isPTBR =
+    firstRowText.includes("data") || firstRowText.includes("publicad");
+
   for (let i = 0; i < rowsTopPosts.length; i++) {
     const row = rowsTopPosts[i];
     if (!row || row.length < 3) continue;
@@ -20,7 +24,7 @@ export async function populateTopPosts(rowsTopPosts: string[][]) {
     const engagements = Number(row[2] ?? 0);
 
     if (url1 && url1.startsWith("http") && date1 && date1.includes("/")) {
-      const publishedAt = formatDate(date1);
+      const publishedAt = formatDate(date1, isPTBR);
       if (publishedAt) {
         if (postsMap.has(url1)) {
           postsMap.get(url1)!.engagements = engagements;
@@ -41,7 +45,7 @@ export async function populateTopPosts(rowsTopPosts: string[][]) {
       const impressions = Number(row[6] ?? 0);
 
       if (url2 && url2.startsWith("http") && date2 && date2.includes("/")) {
-        const publishedAt = formatDate(date2);
+        const publishedAt = formatDate(date2, isPTBR);
         if (publishedAt) {
           if (postsMap.has(url2)) {
             postsMap.get(url2)!.impressions = impressions;

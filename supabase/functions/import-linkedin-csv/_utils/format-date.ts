@@ -1,4 +1,4 @@
-export function formatDate(dateStr: string, isPTBR: boolean): string | null {
+export function formatDate(dateStr: string, isPTBR?: boolean): string | null {
   if (!dateStr || !dateStr.includes("/")) return null;
 
   const parts = dateStr.split("/");

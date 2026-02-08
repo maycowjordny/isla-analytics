@@ -28,10 +28,14 @@ export async function populateDiscovery(
     );
   }
 
+  const engagementHeader =
+    rowsEngagement[0]?.[0]?.toString().toLowerCase() ?? "";
+  const isPTBR = engagementHeader.includes("data");
+
   const metricsToSave = rowsEngagement
     .slice(1)
     .map((row) => {
-      const formattedDate = formatDate(row[0]);
+      const formattedDate = formatDate(row[0]?.toString().trim(), isPTBR);
       if (!formattedDate) return null;
 
       return {
