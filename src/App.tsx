@@ -29,6 +29,7 @@ import { DashboardSkeleton } from "./components/skeleton/dashboard-skeleton";
 import { Button } from "./components/ui/button";
 import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
 import { useKpisFromSummary } from "./hooks/use-kpis-from-summary";
+import type { InsightsData } from "./types/insights";
 import type { LinkedInSummaryData } from "./types/summary-types";
 
 function App() {
@@ -41,7 +42,7 @@ function App() {
     from: subDays(new Date(), 6),
     to: new Date(),
   });
-  const [insightsData, setInsightsData] = useState<any>(null);
+  const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
 
   const dailyMomentumChart = summaryData?.daily_momentum_chart || [];

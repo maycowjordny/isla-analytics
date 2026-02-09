@@ -32,6 +32,17 @@ Deno.serve(async (req) => {
         .select("category, label, percentage"),
     ]);
 
+    const hasData =
+      (dailyMetrics.data && dailyMetrics.data.length > 0) ||
+      (posts.data && posts.data.length > 0);
+
+    if (!hasData) {
+      return new Response(JSON.stringify(null), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     const systemPrompt = `
       You are a LinkedIn Data Analyst.
       LANGUAGE RULES:

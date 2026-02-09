@@ -4,7 +4,6 @@ import { calculateGrowth } from "./_utils/calculate-growth.ts";
 import { getER } from "./_utils/get-er.ts";
 
 Deno.serve(async (req) => {
-  // Tratamento de OPTIONS (CORS)
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -13,7 +12,6 @@ Deno.serve(async (req) => {
     const { startDate: startDateParam, endDate: endDateParam } =
       await req.json();
 
-    // 1. Lógica de Datas Simplificada
     const now = new Date();
     const currentEnd = endDateParam ? new Date(endDateParam) : now;
     const currentStart = startDateParam
@@ -23,13 +21,10 @@ Deno.serve(async (req) => {
     const durationTime = currentEnd.getTime() - currentStart.getTime();
     const previousStart = new Date(currentStart.getTime() - durationTime);
 
-    // Formatação ISO para o Supabase
     const dateIsoStart = currentStart.toISOString().split("T")[0];
     const dateIsoEnd = currentEnd.toISOString().split("T")[0];
     const dateIsoPrevStart = previousStart.toISOString().split("T")[0];
 
-    // 2. Execução das Queries em Paralelo
-    // Mantemos as respostas separadas aqui para preservar a TIPAGEM do TypeScript
     const [metricsRes, followersRes, postsRes, demographicsRes, summariesRes] =
       await Promise.all([
         supabase
@@ -67,8 +62,6 @@ Deno.serve(async (req) => {
           .limit(2),
       ]);
 
-    // 3. Verificação de Erros Unificada (Substitui os 5 ifs)
-    // Criamos um array apenas para checar se existe algum erro
     const firstError = [
       metricsRes,
       followersRes,
@@ -79,15 +72,12 @@ Deno.serve(async (req) => {
 
     if (firstError) throw firstError;
 
-    // 4. Extração Segura dos Dados
-    // Usamos '|| []' para garantir que nunca seja null, evitando quebras nos filtros
     const metricsData = metricsRes.data || [];
     const followersData = followersRes.data || [];
     const postsData = postsRes.data || [];
     const demographicsData = demographicsRes.data || [];
     const summariesData = summariesRes.data || [];
 
-    // 5. Processamento (Filtros de Data)
     const currentPeriodMetrics = metricsData.filter(
       (d) => new Date(d.metric_date) >= currentStart,
     );
@@ -100,7 +90,6 @@ Deno.serve(async (req) => {
       (d) => new Date(d.metric_date) >= currentStart,
     );
 
-    // 6. Cálculos
     const currentER = getER(currentPeriodMetrics);
     const prevER = getER(prevPeriodMetrics);
     const erGrowth = prevER > 0 ? ((currentER - prevER) / prevER) * 100 : 0;
@@ -115,7 +104,6 @@ Deno.serve(async (req) => {
           100
         : 0;
 
-    // 7. Montagem dos Charts e Objetos de Resposta
     const dailyMomentumChart = currentPeriodMetrics.map((day) => {
       const dailyER =
         day.impressions > 0 ? (day.engagements / day.impressions) * 100 : 0;
@@ -153,7 +141,6 @@ Deno.serve(async (req) => {
       {} as Record<string, Array<{ label: string; percentage: number }>>,
     );
 
-    // 8. Retorno Final
     return new Response(
       JSON.stringify({
         summary: {
